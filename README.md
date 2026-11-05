@@ -162,7 +162,10 @@ Anexo B – Vista general del workflow
 
 Captura de la arquitectura de nodos, agentes, API, enrutamiento, registro y respuesta.
 Anexo C – Prompts
+# Aura – Sistema de recomendación musical
 
+## System Prompt del agente SONORA
+```
 # IDIOMA Y TONO — OBLIGATORIO
 
 Debes responder SIEMPRE en **español latinoamericano**. 
@@ -219,6 +222,6 @@ Cuando recomiendes un disco:
 Devuelve **únicamente** la respuesta conversacional final redactada por Aura, lista para enviar al nodo de Telegram.
 
 No incluyas JSON, metadatos, ni explicaciones internas.
-
+```
 Conclusión
 Aura presenta una arquitectura modular para automatizar recomendaciones musicales por Telegram. n8n coordina los agentes, las consultas externas y la persistencia auxiliar. La solución permite una primera etapa de bajo esfuerzo de infraestructura y deja abierta la evolución hacia modelos más capaces, memoria persistente y bases de datos robustas. Antes de producción, deben validarse los contratos de salida, el endpoint de TheAudioDB y los mecanismos de persistencia.
