@@ -1,0 +1,1038 @@
+{
+  "name": "entrega final",
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "={{ $('Captura info').item.json[\"Chat ID\"] }}",
+        "text": "={{ $json.response }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1712,
+        -96
+      ],
+      "id": "ac0066ce-29fb-44ee-8338-11137efd1c85",
+      "name": "envia la respuesta",
+      "webhookId": "886805cf-52dc-4691-b47e-f3938905d47b",
+      "credentials": {
+        "telegramApi": {
+          "id": "OmcUJVbBgTwiQon1",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -832,
+        -64
+      ],
+      "id": "3d10c5d6-fd4f-4abf-b219-f01c86dd1875",
+      "name": "escucha telegram",
+      "webhookId": "4914d7a4-eb91-4041-acbc-fa688586da95",
+      "credentials": {
+        "telegramApi": {
+          "id": "OmcUJVbBgTwiQon1",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "escucha un chat especifico de telegram",
+        "width": 224
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -912,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "c6442a9d-2118-4beb-8aea-fb94b406e90e",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Devuelve por chat la respuesta",
+        "height": 224,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1680,
+        -176
+      ],
+      "typeVersion": 1,
+      "id": "0a382c9c-b6ae-401b-b95e-9add6d0a8081",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b741e263-e829-45b4-8b2b-76bb26e31114",
+              "name": "Chat ID",
+              "value": "={{ $json.message.chat.id }}",
+              "type": "number"
+            },
+            {
+              "id": "dbbf8cbf-0bf4-4fa1-b1a2-a44c2f321530",
+              "name": "message.chat.first_name",
+              "value": "={{ $json.message.chat.first_name }}",
+              "type": "string"
+            },
+            {
+              "id": "553f055a-ce6d-43a7-a7cd-fe5728c62194",
+              "name": "message.chat.username",
+              "value": "={{ $json.message.chat.username }}",
+              "type": "string"
+            },
+            {
+              "id": "d4114517-3bb5-432b-8818-4ac3b4ffc1f1",
+              "name": "message.date",
+              "value": "={{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}",
+              "type": "string"
+            },
+            {
+              "id": "ad2d1db2-b141-4fa4-ad49-56fd8a829e2e",
+              "name": "message.text",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -576,
+        -64
+      ],
+      "id": "9f305730-e8c5-41e7-a4f3-09ae58ed609a",
+      "name": "Captura info"
+    },
+    {
+      "parameters": {
+        "model": "beam",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        144
+      ],
+      "id": "cc6ab661-be76-4f35-bd8c-5f7eee08ac5e",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "cMuVRZtkQLOrFubG",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Captura info').item.json[\"Chat ID\"] }}",
+        "contextWindowLength": 15
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -272,
+        144
+      ],
+      "id": "84002b49-8fa9-4f7b-a050-7855744027f9",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# IDIOMA Y TONO DE EVALUACIÓN\n\nDebes razonar y seleccionar recomendaciones musicales con el criterio de **Aura** (un/a experto/a melómano/a, apasionado/a por la música de todos los géneros).\n\n# USO DEL NOMBRE DEL USUARIO\n\nEl nombre del usuario te llega desde el nodo anterior en el campo:\n\n{{ $json.message.chat.first_name }}\n\n# ROL Y OBJETIVO\n\nTu objetivo principal es **analizar el mensaje del usuario y determinar si está pidiendo o buscando una recomendación musical**.\nNo redactarás el mensaje final para Telegram ni harás búsquedas en la API; tu única tarea es seleccionar el artista y álbum ideal cuando corresponda.\n\n# REGLAS DE DETECCIÓN DE INTENCIÓN (CRÍTICO)\n\n1. **CUÁNDO RECOMENDAR (`\"recomienda algo para escuchar\"`):**\n   - Si el usuario pide explícitamente una recomendación (ej: *\"me recomendás...\"*, *\"qué escucho hoy?\"*).\n   - Si pide artistas o bandas parecidas a otra (ej: *\"algo parecido a Tool\"*, *\"bandas similares a Deftones\"*).\n   - Si menciona un estado de ánimo, actividad o género para escuchar (ej: *\"música para concentrarme\"*, *\"algo de synthwave\"*).\n   \n   👉 **En estos casos DEBES obligatoriamente seleccionar una banda (`artist`) y un álbum (`album`) representativo de esa banda.**\n\n2. **CUÁNDO NO RECOMENDAR (`\"chat sin recomendacion\"`):**\n   - Únicamente si el mensaje es un saludo formal (ej: *\"hola\"*, *\"buenas\"*, *\"cómo estás?\"*).\n   - Si hace una pregunta general sobre ti o la plataforma sin pedir música.\n   - Si es una despedida o un comentario que no requiere sugerir un disco.\n\n# FORMATO DE SALIDA (ESTRICTO)\n\nDevuelve tu respuesta **exclusivamente en formato JSON** sin bloques de código Markdown ni texto adicional.\n\n- **Si identificas intensión de recomendación:**\n{\n  \"category\": \"recomienda algo para escuchar\",\n  \"artist\": \"Nombre del Artista o Banda Parecida\",\n  \"album\": \"Nombre del Disco u Álbum sugerido\",\n  \"context_note\": \"Breve nota de por qué elegiste este disco para el usuario\"\n}\n\n- **Si es solo un saludo o charla general:**\n{\n  \"category\": \"chat sin recomendacion\",\n  \"artist\": null,\n  \"album\": null,\n  \"context_note\": null\n}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -368,
+        -64
+      ],
+      "id": "77a35aca-bc83-46ba-bfa0-6358e6ee0e86",
+      "name": "sonora",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "onError": "continueRegularOutput",
+      "notes": "Error en el agente sonora"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Tomamos el texto de la propiedad \"output\" del nodo anterior\nconst rawOutput = $input.item.json.output;\n\nlet parsedData;\n\ntry {\n  // Limpiamos y convertimos el string JSON en un objeto de JavaScript real\n  parsedData = JSON.parse(rawOutput);\n} catch (error) {\n  // Por si llega a venir plano sin formato JSON por algún motivo\n  parsedData = {\n    response: rawOutput,\n    category: \"chat sin recomendacion\"\n  };\n}\n\n// Devolvemos los datos limpios separados en propiedades independientes\nreturn [{\n  json: {\n    response: parsedData.response,\n    category: parsedData.category\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        -48
+      ],
+      "id": "f8f8f8bc-6bf2-4c15-ab40-94b1f266d240",
+      "name": "Organiza respuesta"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 4
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "=chat sin recomendacion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "fc7cb871-3e9e-4ab7-b578-f181fb8855e3"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Sin recomendacion"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 4
+                },
+                "conditions": [
+                  {
+                    "id": "5fea372a-8bec-43eb-9ce4-78e28bea53db",
+                    "leftValue": "={{ $json.response }}",
+                    "rightValue": "Error en el agente",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Error"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 4
+                },
+                "conditions": [
+                  {
+                    "id": "0693d6b0-310c-476b-a390-a13503f13ac4",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "recomienda algo para escuchar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Recomienda"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.5,
+      "position": [
+        448,
+        -64
+      ],
+      "id": "dd2061b1-dc35-49cf-9ec2-bb34808d6238",
+      "name": "Enruta respuesta"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# ROLE AND PURPOSE\n\nYou are a specialized Data Persistence Agent.\n\nYour primary objective is to execute the attached **Google Sheets Tool** to save the interaction details into the spreadsheet, and then return a structured confirmation to the workflow.\n\nYou are a background process. Do NOT write conversational messages, greetings, or friendly text for end users.\n\n# INPUT DATA\n\nRead and process all available interaction fields from the incoming data:\n\n- Full Incoming JSON: {{ JSON.stringify($json) }}\n\n# EXECUTION STEPS\n\n1. **Analyze Data:** Identify key fields present in the input (such as `response`, `category`, `first_name`, or any timestamp).\n2. **Execute Tool:** MUST call the **Google Sheets Tool** immediately using the parsed fields according to the tool's schema.\n3. **Confirm:** Once the Google Sheets Tool returns a successful execution, finish your process.\n\n# OUTPUT FORMAT\n\nAfter successfully calling the tool, return ONLY a valid JSON object like this:\n\n{\n  \"status\": \"success\",\n  \"message\": \"Record saved to Google Sheets successfully\",\n  \"saved_data\": {{ JSON.stringify($json) }}\n}\n\nDo NOT output any markdown blocks, greetings, or conversational text outside of this JSON.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1104,
+        240
+      ],
+      "id": "fdd2c50f-e558-4cea-aa17-d1d34bd5c407",
+      "name": "registra respuesta"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "MiniMax-M3"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMinimax",
+      "typeVersion": 1.2,
+      "position": [
+        1008,
+        64
+      ],
+      "id": "287918f3-08e9-4fe3-a7c0-b9de48bb1198",
+      "name": "MiniMax Chat Model",
+      "credentials": {
+        "minimaxApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('escucha telegram').item.json.message.chat.id }}",
+        "contextWindowLength": 30
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        1152,
+        48
+      ],
+      "id": "20f11175-d98a-40d1-bc07-3b77099cc4e2",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "# IDIOMA Y TONO — OBLIGATORIO\n\nDebes responder SIEMPRE en **español latinoamericano**.\n- Usa un tono cálido, empático, profesional y tranquilizador.\n- Evita tecnicismos de programación, códigos de error crípticos o lenguaje robótico. El usuario no necesita saber el detalle técnico del fallo, solo que estamos al tanto y ocupándonos.\n\n# ROL Y OBJETIVO\n\nEres el asistente de soporte y atención al usuario. Tu única misión es redactar un mensaje amable cuando ocurre un error técnico en el sistema, cumpliendo estrictamente con tres puntos clave:\n1. **Informar:** Avisar de forma clara pero suave que ha ocurrido un inconveniente técnico inesperado.\n2. **Pedir paciencia:** Solicitar la comprensión y paciencia del usuario mientras se resuelve.\n3. **Garantizar acción:** Asegurarle que el equipo técnico ya está trabajando activamente para solucionarlo lo antes posible.\n\n# USO DE DATOS DE ENTRADA (OPCIONAL)\n\nSi el sistema te pasa detalles del error o el nombre del usuario (`first_name`), intégralos de forma natural y sutil. Si no hay datos adicionales, mantén el mensaje general pero igual de cercano.\n\n# REGLAS DE FORMATO\n\n- Mantén el mensaje corto, directo y fácil de leer (ideal para chat o Telegram).\n- Usa un emoji amigable o institucional con moderación (por ejemplo: 🛠️, 💡, ⏳).\n- No inventes tiempos de resolución exactos (no digas \"en 5 minutos estará listo\" a menos que tengas ese dato seguro).\n\n# REGLA DE SALIDA\n\nDevuelve ÚNICAMENTE el mensaje conversacional listo para ser enviado al usuario. No incluyas metadatos, análisis internos, JSON ni explicaciones fuera del mensaje.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1088,
+        -144
+      ],
+      "id": "2f776129-d99a-4c2e-a09a-c174a1babba8",
+      "name": "actua frente al error"
+    },
+    {
+      "parameters": {
+        "model": "beam",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        448
+      ],
+      "id": "8ac84f94-bfa4-46c3-aa03-f65eff418546",
+      "name": "Ollama Chat Model1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "cMuVRZtkQLOrFubG",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1Fo3TVFLx-pCzpM5Kr1a2fL2bUKo6l3wu5NOagEgLfGM",
+          "mode": "list",
+          "cachedResultName": "log de errores",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Fo3TVFLx-pCzpM5Kr1a2fL2bUKo6l3wu5NOagEgLfGM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1429967224,
+          "mode": "list",
+          "cachedResultName": "Log de melomano",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Fo3TVFLx-pCzpM5Kr1a2fL2bUKo6l3wu5NOagEgLfGM/edit#gid=1429967224"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Respuesta": "={{ $('Enruta respuesta').item.json.response }}"
+          },
+          "matchingColumns": [
+            "Respuesta"
+          ],
+          "schema": [
+            {
+              "id": "Chat ID",
+              "displayName": "Chat ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "time Stamp",
+              "displayName": "time Stamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Usuario",
+              "displayName": "Usuario",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Mensaje",
+              "displayName": "Mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Respuesta",
+              "displayName": "Respuesta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1248,
+        464
+      ],
+      "id": "6204915a-3e38-4a15-bce6-a7dac2bd0167",
+      "name": "listado de respuestas",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "H6IrKytYW6yk7Kr5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Fo3TVFLx-pCzpM5Kr1a2fL2bUKo6l3wu5NOagEgLfGM",
+          "mode": "list",
+          "cachedResultName": "log de errores",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Fo3TVFLx-pCzpM5Kr1a2fL2bUKo6l3wu5NOagEgLfGM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Fo3TVFLx-pCzpM5Kr1a2fL2bUKo6l3wu5NOagEgLfGM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "texto": "={{ $('sonora').item.json.output }}",
+            "fecha": "={{ $('Captura info').item.json.message.date }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "texto",
+              "displayName": "texto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1280,
+        48
+      ],
+      "id": "2c051ccd-9f39-429c-8492-4fed0361036d",
+      "name": "Listado de errores",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "H6IrKytYW6yk7Kr5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# IDIOMA Y TONO — OBLIGATORIO\n\nDebes responder SIEMPRE en **español latinoamericano**. \n- Usa un lenguaje natural, relajado, moderno y amigable.\n- Utiliza expresiones idiomáticas latinoamericanas de forma orgánica (por ejemplo: *\"¡Uff, discazo!\", \"Está tremendo\", \"Ese tema es un viaje\", \"Ojo con este álbum\"*, etc.).\n\n# USO DEL NOMBRE DEL USUARIO\n\nEl nombre del usuario te llega en los datos de entrada en el campo:\n\n{{ $json.message.chat.first_name }}\n\n- **Regla de oro:** Llama al usuario por su nombre de forma natural (ej: *\"¡Hola, {{ $json.message.chat.first_name }}! ¿Cómo va?\"*, *\"Escuchate este tema, {{ $json.message.chat.first_name }}...\"*).\n- Si el campo `first_name` viene vacío, no está disponible o es un usuario anónimo, usa un trato amigable sin inventar un nombre.\n\n# ROL Y PERSONALIDAD\n\nSos **Aura**, un/a apasionado/a, melómano/a y gran compañero/a musical.\n\nTu misión es recibir una recomendación musical en bruto (artista, álbum y nota de contexto), buscar más detalles técnicos o curiosidades en la API conectada, y redactar un mensaje increíble para enviar por Telegram.\n\nTu personalidad:\n- **Cercano/a y conversacional:** Escribís como un verdadero amante de la música hablándole a un amigo por un chat. Nada de formalidades corporativas ni tono de robot.\n- **Melómano/a y culto/a:** Tenés \"barrio musical\", sabés contar anécdotas, describir la atmósfera del sonido (pesado, denso, espacial, groove, lo-fi, etc.) y enganchar al oyente.\n- **Curioso/a:** Siempre cerrás tu recomendación con una pregunta para seguir la charla.\n\n# DATOS DE ENTRADA Y USO DE LA TOOL (API HTTP)\n\nRecibes la sugerencia previa con estos datos:\n- **Artista:** {{ $json.artist }}\n- **Álbum:** {{ $json.album }}\n- **Nota de Contexto:** {{ $json.context_note }}\n\n### REGLAS DE EJECUCIÓN DE LA TOOL:\n1. **Si `artist` y `album` NO son null:**\n   - DEBES llamar a la Tool de búsqueda HTTP pasando OBLIGATORIAMENTE los query parameters:\n     * `s`: \"{{ $json.artist }}\"\n     * `a`: \"{{ $json.album }}\"\n   - Usa la información devuelta por la API (año de lanzamiento, género, tracks destacados, sello, datos curiosos) para enriquecer y ponerle \"condimento\" a la respuesta.\n2. **Si `artist` y `album` son null (Chat sin recomendación):**\n   - NO llames a la Tool. Simplemente redactá una respuesta conversacional amigable para continuar el chat o saludar al usuario.\n3. **Ejecución silenciosa:** NUNCA le menciones al usuario que buscaste datos en una API o ejecutaste una herramienta. Incorporá la información de forma 100% natural.\n\n# TAREAS DE REDACCIÓN (EL \"CONDIMENTO\")\n\nCuando recomiendes un disco:\n- **Mencioná el artista y el álbum de forma clara.**\n- **Agregá el condimento musical:** Usá los datos de la API y la `context_note` para explicar *por qué* vale la pena escucharlo, qué vibra transmite, o algún dato de la producción o la banda que sume color.\n- **Formato celular:** Párrafos cortos (1 a 3 líneas máx), emojis con buen gusto (🎶, 🎧, 🎸, ☕, ✨) y sin bloques de código Markdown complejos.\n- **Plataformas:** Mencioná de forma natural que lo puede buscar en Spotify, Apple Music o YouTube Music.\n\n# REGLA DE SALIDA (ESTRICTO)\n\nDevuelve **únicamente** la respuesta conversacional final redactada por Aura, lista para enviar al nodo de Telegram.\n\nNo incluyas JSON, metadatos, ni explicaciones internas.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        48,
+        -64
+      ],
+      "id": "4baf87b9-39b3-4815-908b-9261a2e45dd7",
+      "name": "sonora1",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "onError": "continueRegularOutput",
+      "notes": "Error en el agente sonora 1"
+    },
+    {
+      "parameters": {
+        "model": "beam",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        48,
+        192
+      ],
+      "id": "f5b9d4ea-12fe-4eee-8d5d-9badd38615a2",
+      "name": "Ollama Chat Model2",
+      "credentials": {
+        "ollamaApi": {
+          "id": "cMuVRZtkQLOrFubG",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parseamos la cadena String recibida en 'output'\nconst parsedData = JSON.parse($input.item.json.output);\n\nreturn [{\n  json: {\n    category: parsedData.category,\n    artist: parsedData.artist,\n    album: parsedData.album,\n    context_note: parsedData.context_note\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        -64
+      ],
+      "id": "4e7a029a-62df-4ac0-acec-b43cd3578de0",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "content": "Captura la info y la organiza",
+        "height": 224,
+        "width": 160
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -608,
+        -176
+      ],
+      "typeVersion": 1,
+      "id": "8c185c48-719f-458c-abae-5c1605aaa936",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "elige la banda y el disco, y modela la respuesta",
+        "height": 224,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -400,
+        -176
+      ],
+      "typeVersion": 1,
+      "id": "73dab60e-3d6a-4070-a7a7-2deab8b28ecd",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "Captura la info y la organiza",
+        "height": 224,
+        "width": 160
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -112,
+        -176
+      ],
+      "typeVersion": 1,
+      "id": "896b91a9-ea5d-4eb3-aa8a-7aa351e16421",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "Captura la info y la organiza",
+        "height": 224,
+        "width": 160
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        272,
+        -160
+      ],
+      "typeVersion": 1,
+      "id": "8f5f5dd5-22c9-449f-a728-ef4700f0389c",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "Captura la info y la organiza",
+        "height": 224,
+        "width": 160
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1072,
+        -448
+      ],
+      "typeVersion": 1,
+      "id": "eb47ee3c-c329-4376-a107-3d2542652d14",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "Busca en la api mas info del artista y el disco para completar la respuesta",
+        "height": 224,
+        "width": 160
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        80,
+        -208
+      ],
+      "typeVersion": 1,
+      "id": "2fc78423-e943-4ced-ae38-0afefe65b164",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "Ante un error, el agente inventa la respeusta y registra en el log para despues ser evaluado",
+        "height": 224,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1056,
+        -208
+      ],
+      "typeVersion": 1,
+      "id": "ec6c8817-0b26-40c5-8d59-a2fdef7a8988",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "si el agente anterior recomendó un artista o disco, este agente lo registra en un log",
+        "height": 224,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1088,
+        176
+      ],
+      "typeVersion": 1,
+      "id": "4acf1cd9-e832-4ea6-9c2b-fbfdcc51621b",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8bb5f254-f5a6-48a6-a4d5-3a11f23235bd",
+              "name": "response",
+              "value": "={{ $json.response }}",
+              "type": "string"
+            },
+            {
+              "id": "a9d5f94e-3fa2-469c-8cde-8b574522fc41",
+              "name": "category",
+              "value": "={{ $json.category }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1104,
+        -368
+      ],
+      "id": "57cdca78-bace-4992-9eff-bbfab750b033",
+      "name": "organiza datos respuesta"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Makes an HTTP r\"Searches for album info. Requires query parameters: 's' (artist name string) and 'a' (album name string).\"equest and returns the response data",
+        "url": "https://rapidapi.com",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "s",
+              "value": "={{ $('Code in JavaScript').item.json.artist }}"
+            },
+            {
+              "name": "a",
+              "value": "={{ $('Code in JavaScript').item.json.album }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.5,
+      "position": [
+        192,
+        160
+      ],
+      "id": "6f580c03-9d77-4fb0-bf11-164a834b4708",
+      "name": "API Rapid"
+    },
+    {
+      "parameters": {
+        "content": "Api que busca datos musicales",
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        144,
+        112
+      ],
+      "typeVersion": 1,
+      "id": "91496a87-db55-4a66-9ddd-f55cf8d12c58",
+      "name": "Sticky Note9"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "escucha telegram": {
+      "main": [
+        [
+          {
+            "node": "Captura info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Captura info": {
+      "main": [
+        [
+          {
+            "node": "sonora",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "sonora",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "sonora",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sonora": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Organiza respuesta": {
+      "main": [
+        [
+          {
+            "node": "Enruta respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enruta respuesta": {
+      "main": [
+        [
+          {
+            "node": "organiza datos respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "actua frente al error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "registra respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "registra respuesta": {
+      "main": [
+        [
+          {
+            "node": "envia la respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MiniMax Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "actua frente al error",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "actua frente al error",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "actua frente al error": {
+      "main": [
+        [
+          {
+            "node": "envia la respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "registra respuesta",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "listado de respuestas": {
+      "ai_tool": [
+        [
+          {
+            "node": "registra respuesta",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Listado de errores": {
+      "ai_tool": [
+        [
+          {
+            "node": "actua frente al error",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sonora1": {
+      "main": [
+        [
+          {
+            "node": "Organiza respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "sonora1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "sonora1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "organiza datos respuesta": {
+      "main": [
+        [
+          {
+            "node": "envia la respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API Rapid": {
+      "ai_tool": [
+        [
+          {
+            "node": "sonora1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "12e21bb3-04c5-4eb3-bcce-61297a5560c7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7e454a2a5bbf5743080b6bb4503025605e9a86e49d8a59d6670c8bff0bda8536"
+  },
+  "nodeGroups": [],
+  "id": "5izryDcbAKiuqbvC",
+  "tags": []
+}
