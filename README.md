@@ -457,7 +457,29 @@ SONORA1	Activados	2	continueRegularOutput
 actua frente al error	No se observa configuración explícita	—	—
 registra respuesta	No se observa configuración explícita
 
+16. uso de Vector Store para el contexto histórico musical
+1. Necesidad que resuelve
+SONORA tiene como objetivo recomendar música y mantener conversaciones con cierto nivel de profundidad sobre artistas, géneros, álbumes y movimientos musicales.
 
+Para que esas recomendaciones tengan fundamento, el agente necesita acceder a información que le permita comprender, entre otros aspectos:
+- El origen y la evolución de los géneros musicales.
+- Las influencias entre artistas y movimientos.
+- Los contextos históricos y culturales en los que surgieron determinadas corrientes.
+- Las características musicales de distintas épocas.
+- Las relaciones entre estilos, instrumentos, técnicas de composición y producción.
+Confiar exclusivamente en el conocimiento incorporado en el modelo de inteligencia artificial presenta una limitación: el agente puede generar respuestas plausibles, pero no necesariamente basadas en una fuente documental específica o verificable.
+
+Por eso se incorpora una base de conocimiento externa mediante un Vector Store.
+2. ¿Por qué un Vector Store y no una base de datos tradicional?
+Una base de datos relacional tradicional permite consultar información estructurada mediante coincidencias exactas, filtros y relaciones previamente definidas.
+
+Por ejemplo, podríamos buscar todos los registros correspondientes al género «Rock», o recuperar la información asociada a un artista determinado.
+
+Sin embargo, el conocimiento histórico musical es principalmente conceptual y contextual. Una consulta puede utilizar palabras diferentes a las del documento que contiene la información buscada.
+
+Un Vector Store permite resolver este problema mediante la búsqueda semántica.
+
+El mecanismo consiste en transformar los fragmentos de documentos en representaciones numéricas llamadas embeddings. Estas representaciones permiten identificar relaciones de significado entre textos, en lugar de depender exclusivamente de coincidencias literales.
 
 # Aura – Sistema de recomendación musical
 
